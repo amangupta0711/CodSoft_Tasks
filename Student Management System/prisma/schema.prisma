@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  GRADUATED
+}
+
+enum TeacherStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum FeeCategory {
+  TUITION
+  LIBRARY
+  LABORATORY
+  SPORTS
+  EXAMINATION
+  ANNUAL
+  OTHER
+}
+
+enum InvoiceStatus {
+  PAID
+  PARTIALLY_PAID
+  PENDING
+  OVERDUE
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  ONLINE_DEMO
+  CHEQUE
+  CARD
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(STUDENT)
+  avatar       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // 1-to-1 link to Student profile if role is STUDENT
+  student      Student?  @relation("UserStudent")
+  // 1-to-1 link to Teacher profile if role is TEACHER
+  teacher      Teacher?  @relation("UserTeacher")
+
+  // Audit logs / recorded by
+  recordedPayments FeePayment[]   @relation("PaymentRecorder")
+  gradedResults    Result[]       @relation("ResultGrader")
+  markedAttendance Attendance[]   @relation("AttendanceMarker")
+  createdExams     Examination[]  @relation("ExamCreator")
+
+  @@index([role])
+}
+
+model Student {
+  id             String        @id @default(uuid())
+  studentId      String        @unique // e.g. STU-2024-001
+  fullName       String
+  email          String        @unique
+  phone          String?
+  dateOfBirth    DateTime?
+  gender         String?
+  address        String?
+  status         StudentStatus @default(ACTIVE)
+  enrollmentDate DateTime      @default(now())
+  avatar         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Link to User account
+  userId         String?       @unique
+  user           User?         @relation("UserStudent", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Current primary class
+  currentClassId String?
+  currentClass   Class?        @relation("ClassStudents", fields: [currentClassId], references: [id], onDelete: SetNull)
+
+  // Relations
+  enrollments    Enrollment[]
+  attendance     Attendance[]
+  results        Result[]
+  feeInvoices    FeeInvoice[]
+
+  @@index([currentClassId])
+  @@index([status])
+  @@index([fullName])
+}
+
+model Teacher {
+  id             String          @id @default(uuid())
+  teacherId      String          @unique // e.g. TCH-2024-001
+  fullName       String
+  email          String          @unique
+  phone          String?
+  department     String
+  qualification  String?
+  joiningDate    DateTime        @default(now())
+  status         TeacherStatus   @default(ACTIVE)
+  avatar         String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Link to User account
+  userId         String?         @unique
+  user           User?           @relation("UserTeacher", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Classes where this teacher is primary Class Teacher
+  headOfClasses  Class[]         @relation("ClassTeacher")
+
+  // Assignments to classes & subjects
+  assignments    TeacherAssignment[]
+
+  @@index([department])
+  @@index([status])
+}
+
+model Class {
+  id             String              @id @default(uuid())
+  name           String              // e.g. "Grade 10", "Computer Science Year 2"
+  section        String              // e.g. "A", "Morning"
+  room           String?             // e.g. "Room 302"
+  academicYear   String              @default("2024-2025")
+  capacity       Int                 @default(40)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  // Class Teacher
+  classTeacherId String?
+  classTeacher   Teacher?            @relation("ClassTeacher", fields: [classTeacherId], references: [id], onDelete: SetNull)
+
+  // Students currently in this class
+  students       Student[]           @relation("ClassStudents")
+
+  // Enrollments history
+  enrollments    Enrollment[]
+
+  // Subjects taught in this class with teachers
+  assignments    TeacherAssignment[]
+
+  // Attendance records for this class
+  attendance     Attendance[]
+
+  // Exams conducted for this class
+  examinations   Examination[]
+
+  @@unique([name, section, academicYear])
+  @@index([classTeacherId])
+}
+
+model Subject {
+  id          String              @id @default(uuid())
+  code        String              @unique // e.g. "MTH-101", "CS-201"
+  name        String              // e.g. "Advanced Mathematics"
+  description String?
+  credits     Int                 @default(3)
+  department  String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  assignments TeacherAssignment[]
+  exams       Examination[]
+
+  @@index([department])
+}
+
+model TeacherAssignment {
+  id           String    @id @default(uuid())
+  teacherId    String
+  teacher      Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId      String
+  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId    String?
+  subject      Subject?  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  academicYear String    @default("2024-2025")
+  createdAt    DateTime  @default(now())
+
+  @@unique([teacherId, classId, subjectId, academicYear])
+  @@index([teacherId])
+  @@index([classId])
+  @@index([subjectId])
+}
+
+model Enrollment {
+  id           String    @id @default(uuid())
+  studentId    String
+  student      Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId      String
+  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  academicYear String    @default("2024-2025")
+  enrolledAt   DateTime  @default(now())
+
+  @@unique([studentId, classId, academicYear])
+  @@index([studentId])
+  @@index([classId])
+}
+
+model Attendance {
+  id          String           @id @default(uuid())
+  studentId   String
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId     String
+  class       Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  date        DateTime         // Standardized to midnight / YYYY-MM-DD
+  status      AttendanceStatus @default(PRESENT)
+  remarks     String?
+  markedById  String?
+  markedBy    User?            @relation("AttendanceMarker", fields: [markedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Strict constraint: One attendance entry per student per class per date
+  @@unique([studentId, classId, date])
+  @@index([classId, date])
+  @@index([studentId])
+  @@index([date])
+}
+
+model Examination {
+  id           String    @id @default(uuid())
+  name         String    // e.g. "Midterm Examination", "Final Exam"
+  term         String    // e.g. "Semester 1", "Term 2"
+  academicYear String    @default("2024-2025")
+  examDate     DateTime
+  maxMarks     Float     @default(100)
+  passingMarks Float     @default(40)
+  classId      String
+  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdById  String?
+  createdBy    User?     @relation("ExamCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  results      Result[]
+
+  @@index([classId])
+  @@index([subjectId])
+}
+
+model Result {
+  id            String      @id @default(uuid())
+  examinationId String
+  examination   Examination @relation(fields: [examinationId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  marksObtained Float
+  percentage    Float
+  grade         String      // e.g. "A+", "A", "B", "C", "D", "F"
+  remarks       String?
+  gradedById    String?
+  gradedBy      User?       @relation("ResultGrader", fields: [gradedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Prevent duplicate results for the same exam & student
+  @@unique([examinationId, studentId])
+  @@index([examinationId])
+  @@index([studentId])
+  @@index([grade])
+}
+
+model FeeInvoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique // e.g. "INV-2024-001"
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title         String        // e.g. "Term 1 Tuition & Facilities Fee"
+  category      FeeCategory   @default(TUITION)
+  totalAmount   Float
+  paidAmount    Float         @default(0)
+  balance       Float
+  dueDate       DateTime
+  status        InvoiceStatus @default(PENDING)
+  issuedDate    DateTime      @default(now())
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  payments      FeePayment[]
+
+  @@index([studentId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model FeePayment {
+  id            String        @id @default(uuid())
+  receiptNumber String        @unique // e.g. "RCP-2024-001"
+  invoiceId     String
+  invoice       FeeInvoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentDate   DateTime      @default(now())
+  paymentMethod PaymentMethod @default(ONLINE_DEMO)
+  transactionRef String?      // e.g. "TXN-884920"
+  notes         String?
+  recordedById  String?
+  recordedBy    User?         @relation("PaymentRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+
+  @@index([invoiceId])
+  @@index([paymentDate])
+}

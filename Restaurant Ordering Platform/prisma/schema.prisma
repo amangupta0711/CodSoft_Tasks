@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum OrderType {
+  DELIVERY
+  PICKUP
+  DINE_IN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  PAY_AT_RESTAURANT
+  SIMULATED_ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  SEATED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(CUSTOMER)
+  phone        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orders       Order[]
+  reservations Reservation[]
+
+  @@index([email])
+}
+
+model MenuCategory {
+  id           String     @id @default(uuid())
+  name         String     @unique
+  slug         String     @unique
+  description  String?
+  displayOrder Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  items        MenuItem[]
+
+  @@index([slug])
+}
+
+model MenuItem {
+  id              String       @id @default(uuid())
+  name            String
+  description     String
+  price           Float
+  categoryId      String
+  category        MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  imageUrl        String
+  isVegetarian    Boolean      @default(false)
+  isAvailable     Boolean      @default(true)
+  prepTimeMinutes Int          @default(20)
+  isPopular       Boolean      @default(false)
+  isArchived      Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  orderItems      OrderItem[]
+
+  @@index([categoryId])
+  @@index([isAvailable])
+  @@index([isPopular])
+}
+
+model RestaurantTable {
+  id           String        @id @default(uuid())
+  tableNumber  String        @unique
+  capacity     Int
+  location     String        @default("Indoor Dining")
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+
+  @@index([tableNumber])
+}
+
+model Reservation {
+  id                String            @id @default(uuid())
+  reservationNumber String            @unique
+  userId            String?
+  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName      String
+  customerEmail     String
+  customerPhone     String
+  tableId           String
+  table             RestaurantTable   @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  reservationDate   String            // Format YYYY-MM-DD for precise day matching
+  timeSlot          String            // e.g. "19:00", "19:30"
+  guestCount        Int
+  specialRequests   String?
+  status            ReservationStatus @default(PENDING)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([tableId, reservationDate, timeSlot])
+  @@index([reservationDate, timeSlot])
+  @@index([customerEmail])
+  @@index([status])
+}
+
+model Order {
+  id                  String         @id @default(uuid())
+  orderNumber         String         @unique
+  userId              String?
+  user                User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName        String
+  customerEmail       String?
+  contactNumber       String
+  orderType           OrderType      @default(DELIVERY)
+  status              OrderStatus    @default(PENDING)
+  paymentMethod       PaymentMethod  @default(CASH_ON_DELIVERY)
+  paymentStatus       PaymentStatus  @default(PENDING)
+  deliveryAddress     String?
+  specialInstructions String?
+  subtotal            Float
+  taxAmount           Float
+  deliveryFee         Float          @default(0)
+  totalAmount         Float
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  items               OrderItem[]
+  payments            PaymentRecord[]
+
+  @@index([orderNumber])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id         String    @id @default(uuid())
+  orderId    String
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String?
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  itemName   String    // Stored snapshot of item name
+  itemPrice  Float     // Stored snapshot of item price
+  quantity   Int
+  subtotal   Float
+
+  @@index([orderId])
+}
+
+model PaymentRecord {
+  id             String        @id @default(uuid())
+  orderId        String
+  order          Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount         Float
+  paymentMethod  PaymentMethod
+  transactionRef String        @unique
+  status         PaymentStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+
+  @@index([orderId])
+}

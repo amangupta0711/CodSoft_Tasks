@@ -1,0 +1,10 @@
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+
+Job Portal/storage/db_snapshot.json

@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;
+    --foreground: 153 60% 12%;
+    --primary: 153 45% 18%;
+    --primary-foreground: 40 33% 98%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 153 60% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 153 60% 12%;
+    --muted: 40 20% 93%;
+    --muted-foreground: 153 15% 40%;
+    --border: 40 20% 88%;
+  }
+
+  body {
+    background-color: #FAF8F5;
+    color: #132E20;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F3EFEA;
+}
+::-webkit-scrollbar-thumb {
+  background: #C6B497;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1A442C;
+}
+
+/* Glassmorphism helpers */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(221, 209, 188, 0.45);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(221, 209, 188, 0.4);
+}
+
+/* Food badge glow */
+.badge-veg {
+  border: 1.5px solid #16A34A;
+  color: #16A34A;
+}
+.badge-nonveg {
+  border: 1.5px solid #DC2626;
+  color: #DC2626;
+}
+
+/* Shimmer animation */
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
