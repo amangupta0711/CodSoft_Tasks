@@ -1,105 +1,158 @@
-# EduManage — Centralized Student Management System (Pro)
+# EduManage — Centralized Student Management System
 
-EduManage is an enterprise-grade, full-stack educational management platform engineered for college administrations, faculty members, and enrolled students. Built for the **CodSoft Full-Stack Web Development Internship**, this solution eliminates manual paperwork and fragmented spreadsheets through a centralized, high-security digital workflow.
-
----
-
-## 🌟 Key Highlights & Architecture
-
-- **Frontend:** Next.js (App Router, React 18, TypeScript)
-- **Styling & UI:** Tailwind CSS with custom **Navy Blue & Subtle Gold** palette, smooth transitions, responsive collapsible sidebar, and clean modals.
-- **Backend:** Next.js API Route Handlers with Zod request validation and server-side role & ownership verification.
-- **Database:** **PostgreSQL** relational database with **Prisma ORM** (models, foreign keys, unique constraints, and cascade policies).
-- **Session Auth:** Secure HTTP-only JWT sessions with `bcryptjs` password hashing.
-- **Data Visualizations:** Interactive `Recharts` graphs for weekly attendance velocity, academic grading spreads, and departmental enrollment.
-- **Resilience:** Intelligent database connection handling with offline fallback store (`.data/edumanage-db.json`) ensuring 100% uptime during demo recordings while maintaining pure PostgreSQL as the primary production engine.
+EduManage is a full-stack educational management platform designed to simplify academic and administrative operations for colleges and educational institutions. Developed as part of the **CodSoft Full-Stack Web Development Internship**, it brings student records, faculty management, attendance, examinations, and fee tracking into one centralized application.
 
 ---
 
-## 👥 Role-Based Access Control (RBAC)
+## 🌟 Key Features
 
-| Role | Access Scope & Permissions |
-| :--- | :--- |
-| **Administrator** | Full institutional control: Add, edit, view & delete students/teachers; manage classes & subjects; assign faculty; view attendance and academic outcomes; issue fee invoices and record payments; generate audit reports. |
-| **Teacher** | Access assigned classroom cohorts & subjects; mark and review classroom attendance registers with duplicate prevention; submit and evaluate student examination scores; view class average/highest/lowest metrics. |
-| **Student** | Strict read-only isolation: View personal student profile, real-time attendance percentage, verified examination score report cards, and fee invoice dues & payment receipts. Cannot alter grades or payment history. |
-
----
-
-## 🔑 Demo Login Credentials
-
-For local evaluation and internship demonstration:
-
-| Role | Demo Email | Password | Primary Profile / Notes |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@edumanage.com` | `AdminPassword123!` | Dr. Robert Vance (Director) |
-| **Teacher** | `teacher@edumanage.com` | `TeacherPassword123!` | Prof. Marcus Thorne (Computer Science) |
-| **Student** | `student@edumanage.com` | `StudentPassword123!` | Alex Rivera (STU-2024-001) |
-
-> **Pro Tip:** On the login page, you can click any of the **"Internship Demo Accounts"** quick-filler buttons (**Admin**, **Teacher**, or **Student**) to instantly populate the credentials. Once logged in, use the **Quick Demo Switcher** in the top navbar to seamlessly toggle between roles during your screen-recorded demonstration!
+- **Role-Based Dashboards:** Separate interfaces for administrators, teachers, and students.
+- **Student Management:** Add, view, update, and manage student records.
+- **Teacher Management:** Maintain faculty information and manage teaching assignments.
+- **Class & Subject Management:** Organize classes, subjects, and faculty assignments.
+- **Attendance Tracking:** Record and review student attendance.
+- **Examination & Results:** Manage examinations, student marks, and academic results.
+- **Fee Management:** Maintain fee invoices, record payments, and track outstanding balances.
+- **Reports:** Access academic and administrative information through reports.
+- **Authentication:** Login and session management with role-based access control.
+- **Responsive Interface:** Dashboard layouts, navigation, forms, and reusable UI components.
 
 ---
 
-## 🛠️ Windows Installation & Execution Guide
+## 🛠️ Technology Stack
 
-### 1. Prerequisites
-Ensure you have installed:
-- **Node.js** (v18, v20, or v22+)
-- **Git**
+| Technology | Purpose |
+|---|---|
+| Next.js | Full-stack web application framework |
+| React | User interface development |
+| TypeScript | Type-safe application development |
+| Tailwind CSS | Styling and responsive layouts |
+| Prisma ORM | Database schema and data access |
+| PostgreSQL | Relational database |
+| bcryptjs | Password hashing |
+| JWT | Session authentication |
+| Zod | Request validation |
+| Recharts | Data visualizations |
 
-### 2. Clone & Install Dependencies
-Open PowerShell or Command Prompt:
+---
+
+## 👥 User Roles
+
+### Administrator
+- Manage student and teacher records.
+- Organize classes and subjects.
+- Assign faculty to classes.
+- Review attendance and examination results.
+- Manage fee invoices and payments.
+- Access administrative reports.
+
+### Teacher
+- Access assigned classes and subjects.
+- Record and review student attendance.
+- Manage examination scores.
+- Review academic performance.
+
+### Student
+- View personal profile information.
+- Check attendance records.
+- View examination results.
+- Review fee invoices and payment information.
+
+*Access depends on the permissions implemented in the application.*
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+Install the following before running the project:
+
+- Node.js (compatible with the project's dependencies)
+- npm
+- Git
+- PostgreSQL, if using the PostgreSQL database configuration
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/amangupta0711/CodSoft_Tasks.git
+```
+
+### 2. Navigate to the Project
+
 ```powershell
-# Navigate to the project root directory
-cd "c:\Users\sachi\OneDrive\Desktop\All in One\New folder"
+cd "CodSoft_Tasks/Student Management System"
+```
 
-# Install production and development dependencies
+### 3. Install Dependencies
+
+```bash
 npm install
 ```
 
-### 3. PostgreSQL Database Setup (Choose Option A or B)
+### 4. Configure Environment Variables
 
-#### Option A: Docker (Fastest — 10 seconds)
-```powershell
-docker run --name edumanage-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=edumanage -p 5432:5432 -d postgres:16-alpine
-```
+Create a `.env` file in the project directory using `.env.example` as a reference.
 
-#### Option B: Native Windows PostgreSQL / Cloud (Neon / Supabase)
-1. Download and install PostgreSQL from [postgresql.org/download/windows](https://www.postgresql.org/download/windows/).
-2. Create a database named `edumanage`.
-3. Update your connection string in `.env`:
+Configure the required database connection and authentication variables. For example:
+
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/edumanage?schema=public"
-JWT_SECRET="edumanage_jwt_super_secure_secret_key_2026_codsoft_internship"
+DATABASE_URL="your_postgresql_connection_string"
+JWT_SECRET="replace_with_a_secure_random_secret"
 ```
 
-### 4. Push Schema & Seed Initial Records
-```powershell
-# Generate Prisma Client
+Use the actual variable names required by the application. Never commit your `.env` file, database passwords, or production secrets to GitHub.
+
+### 5. Configure the Database
+
+Ensure that your database is running and that `DATABASE_URL` points to the correct database.
+
+Generate the Prisma Client:
+
+```bash
 npm run prisma:generate
+```
 
-# Push schema directly to PostgreSQL
+Apply the database schema:
+
+```bash
 npm run prisma:push
+```
 
-# Run seed script to populate users, classes, subjects, attendance & invoices
+If the project includes a seed script and you want to load demo data, run:
+
+```bash
 npm run prisma:seed
 ```
 
-### 5. Run Automated Tests
-```powershell
-npm test
-```
-*Validates password hashing, grading logic (A+, A, B, C, D, F), fee balance calculations, duplicate attendance prevention, and mark boundary validation.*
-
 ### 6. Start the Development Server
-```powershell
+
+```bash
 npm run dev
 ```
-Open your browser at **[http://localhost:3000](http://localhost:3000)**.
 
-### 7. Production Build (Optional)
-```powershell
+Open the local URL displayed in the terminal, typically:
+
+`http://localhost:3000`
+
+### 7. Run Tests
+
+If the test script is configured in `package.json`, run:
+
+```bash
+npm test
+```
+
+### 8. Create a Production Build
+
+```bash
 npm run build
+```
+
+Start the production server using the configured start script:
+
+```bash
 npm start
 ```
 
@@ -107,79 +160,61 @@ npm start
 
 ## 📁 Project Structure
 
-```
-edumanage/
-├── app/                          # Next.js App Router
-│   ├── api/                      # Backend API Route Handlers
-│   │   ├── auth/                 # Login, Logout, Session check
-│   │   ├── dashboard/            # Role-specific real-time metrics
-│   │   ├── database/             # PostgreSQL connection status
-│   │   ├── students/             # Student CRUD operations
-│   │   ├── teachers/             # Teacher CRUD operations
-│   │   ├── classes/              # Class & Cohort management
-│   │   ├── subjects/             # Subject syllabus management
-│   │   ├── assignments/          # Faculty classroom assignments
-│   │   ├── attendance/           # Daily register & history
-│   │   ├── examinations/         # Exam scheduling
-│   │   ├── results/              # Score grading & calculations
-│   │   └── fees/                 # Invoices & payment receipts
-│   ├── dashboard/                # Dashboards (admin, teacher, student)
-│   ├── students/                 # Student list & profile views
-│   ├── teachers/                 # Teacher directory
-│   ├── classes/                  # Class & subject manager
-│   ├── attendance/               # Attendance marking sheet
-│   ├── examinations/             # Exam & grading center
-│   ├── fees/                     # Financial ledger & receipt issuer
-│   ├── reports/                  # Institutional audit reports
-│   ├── login/                    # Secure authentication page
-│   ├── layout.tsx                # Global HTML wrapper & metadata
-│   └── globals.css               # Design system & custom CSS
+```text
+Student Management System/
+├── app/
+│   ├── api/
+│   │   ├── assignments/
+│   │   ├── attendance/
+│   │   ├── auth/
+│   │   ├── classes/
+│   │   ├── dashboard/
+│   │   ├── examinations/
+│   │   ├── fees/
+│   │   ├── results/
+│   │   ├── students/
+│   │   ├── subjects/
+│   │   └── teachers/
+│   ├── dashboard/
+│   ├── students/
+│   ├── teachers/
+│   ├── attendance/
+│   ├── examinations/
+│   ├── fees/
+│   ├── reports/
+│   ├── login/
+│   ├── layout.tsx
+│   └── globals.css
 ├── components/
-│   ├── layout/                   # Sidebar, Navbar, DashboardLayout
-│   ├── common/                   # DbSetupModal
-│   └── ui/                       # Modal dialog, Toast notifications
+│   ├── common/
+│   ├── layout/
+│   └── ui/
 ├── lib/
-│   ├── auth.ts                   # JWT session & bcrypt utilities
-│   ├── db.ts                     # Database service layer & queries
-│   ├── initial-data.ts           # Comprehensive seed dataset
-│   ├── prisma.ts                 # Prisma singleton & health checks
-│   └── types.ts                  # Zod validation schemas & interfaces
+│   ├── auth.ts
+│   ├── db.ts
+│   ├── initial-data.ts
+│   ├── prisma.ts
+│   └── types.ts
 ├── prisma/
-│   ├── schema.prisma             # PostgreSQL schema with relational constraints
-│   └── seed.ts                   # Database population script
+│   ├── schema.prisma
+│   └── seed.ts
 ├── tests/
-│   └── api-tests.js              # Automated backend test suite
+├── public/
+├── .env.example
 ├── package.json
+├── package-lock.json
+├── next.config.mjs
+├── tailwind.config.ts
 └── README.md
 ```
 
----
-
-## 🛡️ Database Constraints & Business Rules
-
-1. **Unique Identity:** `studentId` and `teacherId` are strictly unique across the institution.
-2. **Attendance Integrity:** Enforces `@@unique([studentId, classId, date])` to guarantee no duplicate attendance records can ever exist for the same student on the same date.
-3. **Examination Results:** Enforces `@@unique([examinationId, studentId])`. Marks are validated so that $0 \le \text{marksObtained} \le \text{maxMarks}$.
-4. **Fee Balance Calculation:** Invoices compute remaining balance as $\text{balance} = \text{totalAmount} - \text{paidAmount}$. Payments cannot exceed outstanding balances.
-5. **Configurable Grading Policy:**
-   - **A+**: 90% – 100%
-   - **A**: 80% – 89.9%
-   - **B**: 70% – 79.9%
-   - **C**: 60% – 69.9%
-   - **D**: 50% – 59.9%
-   - **F**: < 50%
+*The structure above summarizes the expected main directories; optional folders may differ in your local copy.*
 
 ---
 
-## 🎥 Demonstration Video Walkthrough Tips
+## 🔐 Security & Data Integrity
 
-1. **Start at Login:** Show the clean design, toggle the password visibility, and use the demo credentials button.
-2. **Admin Dashboard:** Highlight real KPI cards (derived dynamically from database records) and interactive Recharts attendance curves.
-3. **Student CRUD:** Add a new student, filter by class, search by name, edit details, and open their profile card.
-4. **Attendance Marking:** Select a class, pick today's date, click "Mark All Present", change one student to "Late" with a delay remark, and save with the transaction button.
-5. **Exam Grading:** Switch to examinations, adjust marks for a student, and observe the instant letter grade computation.
-6. **Fee Payment:** Issue an invoice, record a partial payment, and demonstrate remaining balance calculation and receipt generation.
-7. **Role Verification:** Use the top-right Quick Switcher to log into the **Teacher** account (confirm restricted view) and **Student** account (confirm student only sees their own marks, attendance, and fees).
-8. **PostgreSQL Pill:** Click the top database pill to show the active PostgreSQL integration modal.
-#   C o d S o f t _ T a s k s  
- 
+The application is designed around role-based access and reliable academic records.
+
+- Password hashing for authentication.
+- Server-side validation of
